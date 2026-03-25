@@ -1,44 +1,27 @@
 import os
 import subprocess
-import json
 
-def scan_for_vulnerabilities():
-    """Automatically scan the codebase for security vulnerabilities."""
+def run_security_scan():
+    """Runs automated security scans on the codebase"""
     try:
-        # Run a vulnerability scanning tool like OWASP Dependency Check
-        subprocess.run(['dependency-check', '--out', 'dependency-check-report.json', '--format', 'JSON'], check=True)
+        # Run SAST (Static Application Security Testing) tool
+        subprocess.run(['sast_tool', 'scan', './'], check=True)
 
-        # Load the vulnerability report
-        with open('dependency-check-report.json', 'r') as f:
-            report = json.load(f)
+        # Run DAST (Dynamic Application Security Testing) tool
+        subprocess.run(['dast_tool', 'scan', 'http://localhost:8000'], check=True)
 
-        # Extract relevant vulnerability information
-        vulnerabilities = []
-        for dependency in report['dependencies']:
-            for vulnerability in dependency['vulnerabilities']:
-                vulnerabilities.append({
-                    'file': dependency['filePath'],
-                    'cvss': vulnerability['cvssScore'],
-                    'description': vulnerability['description']
-                })
+        # Run dependency analysis tool
+        subprocess.run(['dep_tool', 'audit', './requirements.txt'], check=True)
 
-        return vulnerabilities
+        print('Security scans completed successfully')
     except subprocess.CalledProcessError as e:
-        print(f'Error running vulnerability scan: {e}')
-        return []
-
-def report_vulnerabilities(vulnerabilities):
-    """Report discovered vulnerabilities to the development team."""
-    if vulnerabilities:
-        print('Security vulnerabilities found:')
-        for vuln in vulnerabilities:
-            print(f"- File: {vuln['file']}, CVSS: {vuln['cvss']}, Description: {vuln['description']}")
-    else:
-        print('No security vulnerabilities found.')
+        print(f'Security scan failed: {e}')
+        exit(1)
 
 def main():
-    vulnerabilities = scan_for_vulnerabilities()
-    report_vulnerabilities(vulnerabilities)
+    """Main entry point of the application"""
+    run_security_scan()
+    # Rest of the application logic here...
 
 if __name__ == '__main__':
     main()
